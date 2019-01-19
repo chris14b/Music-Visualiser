@@ -1,9 +1,8 @@
 import Tile from './tile.js';
 
 export default class DiamondTile extends Tile {
-    constructor(context, x, y, width, height) {
-
-        super(context, x, y, width, height);
+    constructor(id, context, x, y, width, height) {
+        super(id, context, x, y, width, height);
     }
 
     draw(hue, alpha) {

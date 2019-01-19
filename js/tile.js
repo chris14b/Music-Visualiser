@@ -1,5 +1,6 @@
 export default class Tile {
-    constructor(context, x, y, width, height) {
+    constructor(id, context, x, y, width, height) {
+        this.id = id;
         this.context = context;
         this.x = x;
         this.y = y;
