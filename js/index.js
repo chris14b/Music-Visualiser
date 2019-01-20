@@ -13,6 +13,7 @@ const MAX_ALPHA = 100;
 const DIAMOND_RATIO = 0.59; // width to height ratio
 const USABLE_HEIGHT_RATIO = 0.98; // percentage of canvas height to use
 const COLOUR_CHANGE_NUM_DARK_FRAMES = 10;
+const RESET_VALUES_NUM_DARK_FRAMES = 200;
 const SMOOTHING_TIME_CONSTANT = 0.95;
 
 window.onload = function() {
@@ -25,44 +26,28 @@ window.onload = function() {
     const canvasContext = canvas.getContext("2d");
     canvasContext.fillStyle = "black";
     canvasContext.fillRect(0, 0, canvas.width, canvas.height);
+
     // const tiles = createDiamondTiles(canvas, canvasContext);
     const tiles = createGroupDiamondTiles2(canvas, canvasContext);
     // const tiles = createRectangleTiles(canvas, canvasContext);
+
     const tileHandler = new TileHandler(tiles);
 
     navigator.getUserMedia({audio:true}, soundAllowed, soundNotAllowed);
 
-
-
     function soundAllowed(stream) {
-    // file.onchange = function() {
-        // const files = this.files;
-        // audio.src = URL.createObjectURL(files[0]);
-        window.persistAudioStream = stream;
-        // audio.load();
-        // audio.play();
         const audioContext = new AudioContext();
         const audioStream = audioContext.createMediaStreamSource( stream );
-
-        // const source = audioContext.createMediaElementSource(audio);
         const analyser = audioContext.createAnalyser();
         audioStream.connect(analyser);
-        // source.connect(analyser);
-        // analyser.connect(audioContext.destination);
         analyser.fftSize = NUM_FREQUENCY_BINS * 2;
         analyser.smoothingTimeConstant = SMOOTHING_TIME_CONSTANT;
         const frequencyBins = new Uint8Array(NUM_FREQUENCY_BINS);
-        let bin1Hue = Math.random() * MAX_HUE;
-        let averageIntensities = [];
-        let averageIntensitiesCount = 0;
-        let maxIntensities = [];
-
-        for (let i = 0; i < NUM_TILE_GROUPS; i++) {
-            averageIntensities.push(0);
-            maxIntensities.push(0);
-        }
-
-        let darkFrameCount = 0;
+        let hueStart = Math.random() * MAX_HUE;
+        let averageIntensities = new Array(NUM_TILE_GROUPS).fill(0);
+        let frameCount = 0;
+        let maxIntensities = new Array(NUM_TILE_GROUPS).fill(0);
+        let darkFrameCount = Number.MAX_SAFE_INTEGER;
 
         function renderFrame() {
             requestAnimationFrame(renderFrame);
@@ -70,38 +55,38 @@ window.onload = function() {
             canvasContext.fillStyle = "black";
             canvasContext.fillRect(0, 0, canvas.width, canvas.height);
             let totalAlpha = 0;
-            averageIntensitiesCount++;
+            frameCount++;
             let tileGroupBins = getTileBins(frequencyBins);
 
             for (let i = 0; i < NUM_TILE_GROUPS; i++) {
-                averageIntensities[i] += (tileGroupBins[i] - averageIntensities[i]) / averageIntensitiesCount;
+                averageIntensities[i] += (tileGroupBins[i] - averageIntensities[i]) / frameCount;
                 maxIntensities[i] = Math.max(maxIntensities[i], tileGroupBins[i]);
-
-                const hue = (i / (NUM_TILE_GROUPS - 1) * FRAME_HUE_RANGE + bin1Hue) % MAX_HUE;
+                const hue = incrementHue(hueStart, - i / (NUM_TILE_GROUPS - 1) * FRAME_HUE_RANGE);
                 const alpha = scaleValue(tileGroupBins[i], averageIntensities[i], maxIntensities[i], MIN_ALPHA, MAX_ALPHA);
-
-                if (!isNaN(alpha)) {
-                    totalAlpha += alpha;
-                }
-
+                totalAlpha += alpha;
                 tileHandler.drawHue(i, hue, alpha);
-                // tileHandler.drawRGBA(i, colours[i][0], colours[i][1], colours[i][2], alpha);
             }
 
-            if (totalAlpha === MIN_ALPHA * NUM_TILE_GROUPS) {
+            if (totalAlpha === 0) {
                 darkFrameCount++;
             } else {
+                if (darkFrameCount > RESET_VALUES_NUM_DARK_FRAMES) {
+                    averageIntensities = new Array(NUM_TILE_GROUPS).fill(0);
+                    frameCount = 0;
+                    maxIntensities = new Array(NUM_TILE_GROUPS).fill(0);
+                    console.info("Resetting values after", darkFrameCount, "dark frames.");
+                }
+
                 darkFrameCount = 0;
             }
 
             if (darkFrameCount === COLOUR_CHANGE_NUM_DARK_FRAMES) {
-                bin1Hue = (bin1Hue + FRAME_HUE_RANGE * 1.5) % MAX_HUE;
+                hueStart = incrementHue(hueStart, FRAME_HUE_RANGE * 1.5);
             } else {
-                bin1Hue = (bin1Hue + HUE_INCREMENT) % MAX_HUE;
+                hueStart = incrementHue(hueStart, HUE_INCREMENT);
             }
         }
 
-        audio.play();
         renderFrame();
     }
 
@@ -109,6 +94,10 @@ window.onload = function() {
         console.log(error);
     }
 };
+
+function incrementHue(hue, increment) {
+    return ((hue + increment) % MAX_HUE + MAX_HUE) % MAX_HUE;
+}
 
 function getTileBins(frequencyBins) {
     let tileGroupBins = [];
@@ -118,26 +107,9 @@ function getTileBins(frequencyBins) {
         const minBin = i / NUM_TILE_GROUPS * NUM_FREQUENCY_BINS;
         const maxBin = (i + 1) / NUM_TILE_GROUPS * NUM_FREQUENCY_BINS;
 
-        for (let j = 0; j < NUM_FREQUENCY_BINS; j++) {
-            let lowerThreshold;
-            let upperThreshold;
-
-            if (minBin < j) {
-                lowerThreshold = 0;
-            } else if (minBin > j + 1) {
-                lowerThreshold = 1;
-            } else {
-                lowerThreshold  = minBin - j;
-            }
-
-            if (maxBin < j) {
-                upperThreshold = 0;
-            } else if (maxBin > j + 1) {
-                upperThreshold = 1;
-            } else {
-                upperThreshold = maxBin - j;
-            }
-
+        for (let j = Math.floor(minBin); j < Math.ceil(maxBin); j++) {
+            const lowerThreshold = Math.max(0, minBin - j);
+            const upperThreshold = Math.min(maxBin - j, 1);
             const amount = upperThreshold - lowerThreshold;
             tileGroupBins[i] += frequencyBins[j] * amount;
         }
@@ -149,6 +121,10 @@ function getTileBins(frequencyBins) {
 }
 
 function scaleValue(value, minIn, maxIn, minOut, maxOut) {
+    if (maxIn - minIn <= 0) {
+        return 0;
+    }
+
     return Math.max((value - minIn) / (maxIn - minIn) * (maxOut - minOut) + minOut, 0);
 }
 
