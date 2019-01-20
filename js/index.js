@@ -7,18 +7,18 @@ const NUM_TILES = NUM_FREQUENCY_BINS;
 const NUM_TILE_GROUPS = 6;
 const MAX_HUE = 360;
 const FRAME_HUE_RANGE = 90; // range of hues to be shown at any one time
-const HUE_INCREMENT = 0.1; // hue range will shift by this amount every frame
+const HUE_INCREMENT_PER_SECOND = 6; // hue range will shift by this amount every frame
 const MIN_ALPHA = 0;
 const MAX_ALPHA = 100;
 const DIAMOND_RATIO = 0.59; // width to height ratio
 const USABLE_HEIGHT_RATIO = 0.98; // percentage of canvas height to use
-const COLOUR_CHANGE_NUM_DARK_FRAMES = 10;
-const RESET_VALUES_NUM_SILENT_FRAMES = 100;
+const QUIET_TIME_THRESHOLD = 0.5; // seconds of quiet, after which colour will change
+const RESET_VALUES_TIME_THRESHOLD = 1;
 const SMOOTHING_TIME_CONSTANT = 0.95;
-const SILENT_THRESHOLD = 0;
+const SILENT_THRESHOLD = 20;
+const FPS = 30;
 
 window.onload = function() {
-    // const file = document.getElementById("file");
     const audio = document.getElementById("audio");
     audio.crossOrigin = "anonymous";
     const canvas = document.getElementById("canvas");
@@ -51,48 +51,64 @@ window.onload = function() {
         let darkFrameCount = Number.MAX_SAFE_INTEGER;
         let silentFrameCount = Number.MAX_SAFE_INTEGER;
 
+        const frameInterval = 1000 / FPS;
+        let then = window.performance.now();
+
         function renderFrame() {
             requestAnimationFrame(renderFrame);
-            analyser.getByteFrequencyData(frequencyBins);
-            canvasContext.fillStyle = "black";
-            canvasContext.fillRect(0, 0, canvas.width, canvas.height);
-            let totalAlpha = 0;
-            frameCount++;
-            let tileGroupBins = getTileBins(frequencyBins);
-            let frameAverageIntensity = 0;
+            let now = window.performance.now();
+            let elapsed = now - then;
 
-            for (let i = 0; i < NUM_TILE_GROUPS; i++) {
-                averageIntensities[i] += (tileGroupBins[i] - averageIntensities[i]) / frameCount;
-                maxIntensities[i] = Math.max(maxIntensities[i], tileGroupBins[i]);
-                const hue = incrementHue(hueStart, - i / (NUM_TILE_GROUPS - 1) * FRAME_HUE_RANGE);
-                const alpha = scaleValue(tileGroupBins[i], averageIntensities[i], maxIntensities[i], MIN_ALPHA, MAX_ALPHA);
-                totalAlpha += alpha;
-                tileHandler.drawHue(i, hue, alpha);
-                frameAverageIntensity += tileGroupBins[i] / (i + 1);
-            }
+            if (elapsed >= frameInterval) {
 
-            if (frameAverageIntensity <= SILENT_THRESHOLD) {
-                silentFrameCount++;
-            } else {
-                if (silentFrameCount > RESET_VALUES_NUM_SILENT_FRAMES) {
-                    averageIntensities = new Array(NUM_TILE_GROUPS).fill(0);
-                    frameCount = 0;
-                    maxIntensities = new Array(NUM_TILE_GROUPS).fill(0);
-                    console.info("Resetting values after", silentFrameCount, "silent frames.");
+
+                then = now - (elapsed % frameInterval);
+
+                analyser.getByteFrequencyData(frequencyBins);
+                canvasContext.fillStyle = "black";
+                canvasContext.fillRect(0, 0, canvas.width, canvas.height);
+                let darkFrame = true;
+                frameCount++;
+                let tileGroupBins = getTileBins(frequencyBins);
+                let frameAverageIntensity = 0;
+
+                for (let i = 0; i < NUM_TILE_GROUPS; i++) {
+                    averageIntensities[i] += (tileGroupBins[i] - averageIntensities[i]) / frameCount;
+                    maxIntensities[i] = Math.max(maxIntensities[i], tileGroupBins[i]);
+
+                    const hue = incrementHue(hueStart, - i / (NUM_TILE_GROUPS - 1) * FRAME_HUE_RANGE);
+                    const alpha = scaleValue(tileGroupBins[i], averageIntensities[i], maxIntensities[i], MIN_ALPHA, MAX_ALPHA);
+                    tileHandler.drawHue(i, hue, alpha);
+
+                    darkFrame = darkFrame && alpha === 0;
+                    frameAverageIntensity += (tileGroupBins[i] - frameAverageIntensity) / (i + 1);
                 }
 
-                silentFrameCount = 0;
-            }
+                if (frameAverageIntensity <= SILENT_THRESHOLD) {
+                    silentFrameCount++;
+                } else {
+                    if (silentFrameCount >= FPS * RESET_VALUES_TIME_THRESHOLD) {
+                        averageIntensities = new Array(NUM_TILE_GROUPS).fill(0);
+                        frameCount = 0;
+                        maxIntensities = new Array(NUM_TILE_GROUPS).fill(0);
+                        console.info("Resetting values after", silentFrameCount, "silent frames.");
+                    }
 
-            if (totalAlpha === 0) {
-                darkFrameCount++;
-
-                if (darkFrameCount === COLOUR_CHANGE_NUM_DARK_FRAMES) {
-                    hueStart = incrementHue(hueStart, - FRAME_HUE_RANGE * 1.5);
+                    silentFrameCount = 0;
                 }
-            }
 
-            hueStart = incrementHue(hueStart, HUE_INCREMENT);
+                if (darkFrame) {
+                    darkFrameCount++;
+                } else {
+                    if (darkFrameCount >= FPS * QUIET_TIME_THRESHOLD) {
+                        hueStart = incrementHue(hueStart, - FRAME_HUE_RANGE * 1.5);
+                    }
+
+                    darkFrameCount = 0;
+                }
+
+                hueStart = incrementHue(hueStart, HUE_INCREMENT_PER_SECOND / FPS);
+            }
         }
 
         renderFrame();
