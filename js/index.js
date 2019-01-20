@@ -13,8 +13,9 @@ const MAX_ALPHA = 100;
 const DIAMOND_RATIO = 0.59; // width to height ratio
 const USABLE_HEIGHT_RATIO = 0.98; // percentage of canvas height to use
 const COLOUR_CHANGE_NUM_DARK_FRAMES = 10;
-const RESET_VALUES_NUM_DARK_FRAMES = 200;
+const RESET_VALUES_NUM_SILENT_FRAMES = 100;
 const SMOOTHING_TIME_CONSTANT = 0.95;
+const SILENT_THRESHOLD = 0;
 
 window.onload = function() {
     // const file = document.getElementById("file");
@@ -48,6 +49,7 @@ window.onload = function() {
         let frameCount = 0;
         let maxIntensities = new Array(NUM_TILE_GROUPS).fill(0);
         let darkFrameCount = Number.MAX_SAFE_INTEGER;
+        let silentFrameCount = Number.MAX_SAFE_INTEGER;
 
         function renderFrame() {
             requestAnimationFrame(renderFrame);
@@ -57,6 +59,7 @@ window.onload = function() {
             let totalAlpha = 0;
             frameCount++;
             let tileGroupBins = getTileBins(frequencyBins);
+            let frameAverageIntensity = 0;
 
             for (let i = 0; i < NUM_TILE_GROUPS; i++) {
                 averageIntensities[i] += (tileGroupBins[i] - averageIntensities[i]) / frameCount;
@@ -65,26 +68,31 @@ window.onload = function() {
                 const alpha = scaleValue(tileGroupBins[i], averageIntensities[i], maxIntensities[i], MIN_ALPHA, MAX_ALPHA);
                 totalAlpha += alpha;
                 tileHandler.drawHue(i, hue, alpha);
+                frameAverageIntensity += tileGroupBins[i] / (i + 1);
+            }
+
+            if (frameAverageIntensity <= SILENT_THRESHOLD) {
+                silentFrameCount++;
+            } else {
+                if (silentFrameCount > RESET_VALUES_NUM_SILENT_FRAMES) {
+                    averageIntensities = new Array(NUM_TILE_GROUPS).fill(0);
+                    frameCount = 0;
+                    maxIntensities = new Array(NUM_TILE_GROUPS).fill(0);
+                    console.info("Resetting values after", silentFrameCount, "silent frames.");
+                }
+
+                silentFrameCount = 0;
             }
 
             if (totalAlpha === 0) {
                 darkFrameCount++;
-            } else {
-                if (darkFrameCount > RESET_VALUES_NUM_DARK_FRAMES) {
-                    averageIntensities = new Array(NUM_TILE_GROUPS).fill(0);
-                    frameCount = 0;
-                    maxIntensities = new Array(NUM_TILE_GROUPS).fill(0);
-                    console.info("Resetting values after", darkFrameCount, "dark frames.");
+
+                if (darkFrameCount === COLOUR_CHANGE_NUM_DARK_FRAMES) {
+                    hueStart = incrementHue(hueStart, - FRAME_HUE_RANGE * 1.5);
                 }
-
-                darkFrameCount = 0;
             }
 
-            if (darkFrameCount === COLOUR_CHANGE_NUM_DARK_FRAMES) {
-                hueStart = incrementHue(hueStart, FRAME_HUE_RANGE * 1.5);
-            } else {
-                hueStart = incrementHue(hueStart, HUE_INCREMENT);
-            }
+            hueStart = incrementHue(hueStart, HUE_INCREMENT);
         }
 
         renderFrame();
