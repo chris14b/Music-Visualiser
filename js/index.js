@@ -29,6 +29,12 @@ window.onload = function() {
     const tiles = createGroupDiamondTiles2(canvas, canvasContext);
     // const tiles = createRectangleTiles(canvas, canvasContext);
     const tileHandler = new TileHandler(tiles);
+    const colours = [[22, 29, 46],
+                     [44, 199, 211],
+                     [29, 116, 156],
+                     [197, 200, 204],
+                     [117, 43, 91],
+                     [237, 122, 104]];
 
     file.onchange = function() {
         const files = this.files;
@@ -75,7 +81,8 @@ window.onload = function() {
                     totalAlpha += alpha;
                 }
 
-                tileHandler.draw(i, hue, alpha);
+                tileHandler.drawHue(i, hue, alpha);
+                // tileHandler.drawRGBA(i, colours[i][0], colours[i][1], colours[i][2], alpha);
             }
 
             if (totalAlpha === MIN_ALPHA * NUM_TILE_GROUPS) {

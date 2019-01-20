@@ -3,10 +3,18 @@ export default class TileHandler {
         this.tiles = tiles;
     }
 
-    draw(id, hue, alpha) {
+    drawHue(id, hue, alpha) {
         this.tiles.forEach(function(tile) {
             if (tile.id === id) {
-                tile.draw(hue, alpha);
+                tile.drawHue(hue, alpha);
+            }
+        });
+    }
+
+    drawRGBA(id, red, green, blue, alpha) {
+        this.tiles.forEach(function(tile) {
+            if (tile.id === id) {
+                tile.drawRGBA(red, green, blue, alpha);
             }
         });
     }

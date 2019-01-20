@@ -8,7 +8,11 @@ export default class Tile {
         this.height = height;
     }
 
-    setFillStyle(hue, alpha) {
+    setHue(hue, alpha) {
         this.context.fillStyle = "hsla(" + hue + ", 100%, 50%, " + alpha + "%)";
+    }
+
+    setRGBA(red, green, blue, alpha) {
+        this.context.fillStyle = "rgba(" + red + ", " + green + ", " + blue + ", " + alpha + "%)";
     }
 }
