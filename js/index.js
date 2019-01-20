@@ -12,7 +12,8 @@ const MIN_ALPHA = 0;
 const MAX_ALPHA = 100;
 const DIAMOND_RATIO = 0.7; // width to height ratio
 const USABLE_HEIGHT_RATIO = 0.8; // percentage of canvas height to use
-const COLOUR_CHANGE_NUM_DARK_FRAMES = 15;
+const COLOUR_CHANGE_NUM_DARK_FRAMES = 10;
+const SMOOTHING_TIME_CONSTANT = 0.95;
 
 window.onload = function() {
     const file = document.getElementById("file");
@@ -40,6 +41,7 @@ window.onload = function() {
         source.connect(analyser);
         analyser.connect(audioContext.destination);
         analyser.fftSize = NUM_FREQUENCY_BINS * 2;
+        analyser.smoothingTimeConstant = SMOOTHING_TIME_CONSTANT;
         const frequencyBins = new Uint8Array(NUM_FREQUENCY_BINS);
         let bin1Hue = Math.random() * MAX_HUE;
         let averageIntensities = [];
@@ -78,7 +80,6 @@ window.onload = function() {
 
             if (totalAlpha === MIN_ALPHA * NUM_TILE_GROUPS) {
                 darkFrameCount++;
-                console.log(darkFrameCount);
             } else {
                 darkFrameCount = 0;
             }
