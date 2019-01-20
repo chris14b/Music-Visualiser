@@ -10,13 +10,13 @@ const FRAME_HUE_RANGE = 90; // range of hues to be shown at any one time
 const HUE_INCREMENT = 0.1; // hue range will shift by this amount every frame
 const MIN_ALPHA = 0;
 const MAX_ALPHA = 100;
-const DIAMOND_RATIO = 0.7; // width to height ratio
-const USABLE_HEIGHT_RATIO = 0.8; // percentage of canvas height to use
+const DIAMOND_RATIO = 0.59; // width to height ratio
+const USABLE_HEIGHT_RATIO = 0.98; // percentage of canvas height to use
 const COLOUR_CHANGE_NUM_DARK_FRAMES = 10;
 const SMOOTHING_TIME_CONSTANT = 0.95;
 
 window.onload = function() {
-    const file = document.getElementById("file");
+    // const file = document.getElementById("file");
     const audio = document.getElementById("audio");
     audio.crossOrigin = "anonymous";
     const canvas = document.getElementById("canvas");
@@ -29,23 +29,26 @@ window.onload = function() {
     const tiles = createGroupDiamondTiles2(canvas, canvasContext);
     // const tiles = createRectangleTiles(canvas, canvasContext);
     const tileHandler = new TileHandler(tiles);
-    const colours = [[22, 29, 46],
-                     [44, 199, 211],
-                     [29, 116, 156],
-                     [197, 200, 204],
-                     [117, 43, 91],
-                     [237, 122, 104]];
 
-    file.onchange = function() {
-        const files = this.files;
-        audio.src = URL.createObjectURL(files[0]);
-        audio.load();
-        audio.play();
+    navigator.getUserMedia({audio:true}, soundAllowed, soundNotAllowed);
+
+
+
+    function soundAllowed(stream) {
+    // file.onchange = function() {
+        // const files = this.files;
+        // audio.src = URL.createObjectURL(files[0]);
+        window.persistAudioStream = stream;
+        // audio.load();
+        // audio.play();
         const audioContext = new AudioContext();
-        const source = audioContext.createMediaElementSource(audio);
+        const audioStream = audioContext.createMediaStreamSource( stream );
+
+        // const source = audioContext.createMediaElementSource(audio);
         const analyser = audioContext.createAnalyser();
-        source.connect(analyser);
-        analyser.connect(audioContext.destination);
+        audioStream.connect(analyser);
+        // source.connect(analyser);
+        // analyser.connect(audioContext.destination);
         analyser.fftSize = NUM_FREQUENCY_BINS * 2;
         analyser.smoothingTimeConstant = SMOOTHING_TIME_CONSTANT;
         const frequencyBins = new Uint8Array(NUM_FREQUENCY_BINS);
@@ -74,7 +77,7 @@ window.onload = function() {
                 averageIntensities[i] += (tileGroupBins[i] - averageIntensities[i]) / averageIntensitiesCount;
                 maxIntensities[i] = Math.max(maxIntensities[i], tileGroupBins[i]);
 
-                const hue = (i / NUM_TILE_GROUPS * FRAME_HUE_RANGE + bin1Hue) % MAX_HUE;
+                const hue = (i / (NUM_TILE_GROUPS - 1) * FRAME_HUE_RANGE + bin1Hue) % MAX_HUE;
                 const alpha = scaleValue(tileGroupBins[i], averageIntensities[i], maxIntensities[i], MIN_ALPHA, MAX_ALPHA);
 
                 if (!isNaN(alpha)) {
@@ -100,7 +103,11 @@ window.onload = function() {
 
         audio.play();
         renderFrame();
-    };
+    }
+
+    function soundNotAllowed(error) {
+        console.log(error);
+    }
 };
 
 function getTileBins(frequencyBins) {
