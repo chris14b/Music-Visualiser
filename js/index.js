@@ -2,8 +2,9 @@ import TileHandler from "./tile-handler.js";
 import RectangleTile from "./rectangle-tile.js";
 import DiamondTile from "./diamond-tile.js";
 
-const NUM_FREQUENCY_BINS = 16;
-const NUM_TILES = NUM_FREQUENCY_BINS;
+const FFT_SIZE = 2048;
+const NUM_FREQUENCY_BINS = FFT_SIZE / 2;
+const NUM_TILES = 16;
 const NUM_TILE_GROUPS = 6;
 const MAX_HUE = 360;
 const FRAME_HUE_RANGE = 90; // range of hues to be shown at any one time
@@ -34,15 +35,16 @@ window.onload = function() {
 
     const tileHandler = new TileHandler(tiles);
 
-    navigator.getUserMedia({audio:true}, soundAllowed, soundNotAllowed);
+    navigator.getUserMedia({audio: true}, soundAllowed, soundNotAllowed);
 
     function soundAllowed(stream) {
         const audioContext = new AudioContext();
         const audioStream = audioContext.createMediaStreamSource( stream );
         const analyser = audioContext.createAnalyser();
         audioStream.connect(analyser);
-        analyser.fftSize = NUM_FREQUENCY_BINS * 2;
+        analyser.fftSize = FFT_SIZE;
         analyser.smoothingTimeConstant = SMOOTHING_TIME_CONSTANT;
+
         const frequencyBins = new Uint8Array(NUM_FREQUENCY_BINS);
         let hueStart = Math.random() * MAX_HUE;
         let averageIntensities = new Array(NUM_TILE_GROUPS).fill(0);
@@ -54,16 +56,15 @@ window.onload = function() {
         const frameInterval = 1000 / FPS;
         let then = window.performance.now();
 
+        renderFrame();
+
         function renderFrame() {
             requestAnimationFrame(renderFrame);
-            let now = window.performance.now();
-            let elapsed = now - then;
+            const now = window.performance.now();
+            const elapsed = now - then;
 
             if (elapsed >= frameInterval) {
-
-
                 then = now - (elapsed % frameInterval);
-
                 analyser.getByteFrequencyData(frequencyBins);
                 canvasContext.fillStyle = "black";
                 canvasContext.fillRect(0, 0, canvas.width, canvas.height);
@@ -101,7 +102,7 @@ window.onload = function() {
                     darkFrameCount++;
                 } else {
                     if (darkFrameCount >= FPS * QUIET_TIME_THRESHOLD) {
-                        hueStart = incrementHue(hueStart, - FRAME_HUE_RANGE * 1.5);
+                        hueStart = incrementHue(hueStart, FRAME_HUE_RANGE * 1.5);
                     }
 
                     darkFrameCount = 0;
@@ -111,7 +112,7 @@ window.onload = function() {
             }
         }
 
-        renderFrame();
+
     }
 
     function soundNotAllowed(error) {
