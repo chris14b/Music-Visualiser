@@ -129,17 +129,19 @@ function getTileBins(frequencyBins) {
 
     for (let i = 0; i < NUM_TILE_GROUPS; i++) {
         tileGroupBins.push(0);
-        const minBin = i / NUM_TILE_GROUPS * NUM_FREQUENCY_BINS;
-        const maxBin = (i + 1) / NUM_TILE_GROUPS * NUM_FREQUENCY_BINS;
+        const minBin = (Math.pow(2, i) - 1) / (Math.pow(2, NUM_TILE_GROUPS) - 1) * NUM_FREQUENCY_BINS;
+        const maxBin = (Math.pow(2, i + 1) - 1) / (Math.pow(2, NUM_TILE_GROUPS) - 1) * NUM_FREQUENCY_BINS;
+        let numBins = 0;
 
         for (let j = Math.floor(minBin); j < Math.ceil(maxBin); j++) {
             const lowerThreshold = Math.max(0, minBin - j);
             const upperThreshold = Math.min(maxBin - j, 1);
             const amount = upperThreshold - lowerThreshold;
             tileGroupBins[i] += frequencyBins[j] * amount;
+            numBins += amount;
         }
 
-        tileGroupBins[i] *= NUM_TILE_GROUPS / NUM_FREQUENCY_BINS;
+        tileGroupBins[i] /= numBins;
     }
 
     return tileGroupBins;
