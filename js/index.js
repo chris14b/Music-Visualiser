@@ -11,12 +11,11 @@ const FRAME_HUE_RANGE = 90; // range of hues to be shown at any one time
 const HUE_INCREMENT_PER_SECOND = 6; // hue range will shift by this amount every frame
 const MIN_ALPHA = 0;
 const MAX_ALPHA = 100;
-const DIAMOND_RATIO = 0.59; // width to height ratio
 const USABLE_HEIGHT_RATIO = 0.98; // percentage of canvas height to use
 const QUIET_TIME_THRESHOLD = 0.5; // seconds of quiet, after which colour will change
 const RESET_VALUES_TIME_THRESHOLD = 1;
 const SMOOTHING_TIME_CONSTANT = 0.95;
-const SILENT_THRESHOLD = 20;
+const SILENT_THRESHOLD = 0;
 const FPS = 30;
 
 window.onload = function() {
@@ -29,8 +28,7 @@ window.onload = function() {
     canvasContext.fillStyle = "black";
     canvasContext.fillRect(0, 0, canvas.width, canvas.height);
 
-    // const tiles = createDiamondTiles(canvas, canvasContext);
-    const tiles = createGroupDiamondTiles2(canvas, canvasContext);
+    const tiles = createDiamondTiles(canvas, canvasContext);
     // const tiles = createRectangleTiles(canvas, canvasContext);
 
     const tileHandler = new TileHandler(tiles);
@@ -76,11 +74,9 @@ window.onload = function() {
                 for (let i = 0; i < NUM_TILE_GROUPS; i++) {
                     averageIntensities[i] += (tileGroupBins[i] - averageIntensities[i]) / frameCount;
                     maxIntensities[i] = Math.max(maxIntensities[i], tileGroupBins[i]);
-
                     const hue = incrementHue(hueStart, - i / (NUM_TILE_GROUPS - 1) * FRAME_HUE_RANGE);
                     const alpha = scaleValue(tileGroupBins[i], averageIntensities[i], maxIntensities[i], MIN_ALPHA, MAX_ALPHA);
                     tileHandler.drawHue(i, hue, alpha);
-
                     darkFrame = darkFrame && alpha === 0;
                     frameAverageIntensity += (tileGroupBins[i] - frameAverageIntensity) / (i + 1);
                 }
@@ -158,10 +154,11 @@ function scaleValue(value, minIn, maxIn, minOut, maxOut) {
 function createRectangleTiles(canvas, canvasContext) {
     const tiles = [];
 
-    for (let i = 0; i < NUM_TILES; i++) {
-        const tileWidth = canvas.width / NUM_TILES;
+    for (let i = 0; i < NUM_TILE_GROUPS; i++) {
+        const tileWidth = canvas.width / NUM_TILE_GROUPS;
         const tileX = tileWidth * i;
-        tiles.push(new RectangleTile(i, canvasContext, tileX, tileWidth * 2, tileWidth, canvas.height - tileWidth * 4));
+        const tileY = canvas.height * (1 - USABLE_HEIGHT_RATIO) / 2;
+        tiles.push(new RectangleTile(i, canvasContext, tileX, tileY, tileWidth, canvas.height * USABLE_HEIGHT_RATIO));
     }
 
     return tiles;
@@ -170,67 +167,7 @@ function createRectangleTiles(canvas, canvasContext) {
 function createDiamondTiles(canvas, canvasContext) {
     const tiles = [];
     const tileHeight = canvas.height * USABLE_HEIGHT_RATIO / 2;
-    const tileWidth = tileHeight * DIAMOND_RATIO;
-    let tileNum = 0;
-
-    for (let i = 0; i < 11; i++) {
-        const tileX = canvas.width / 2 - tileWidth * 3 + tileWidth / 2 * i;
-
-        if (i % 2 === 0) {
-            tiles.push(new DiamondTile(tileNum, canvasContext, tileX, canvas.height / 2 - tileHeight / 2, tileWidth, tileHeight));
-        } else {
-            tiles.push(new DiamondTile(tileNum, canvasContext, tileX, canvas.height / 2 - tileHeight, tileWidth, tileHeight));
-            tileNum++;
-            tiles.push(new DiamondTile(tileNum, canvasContext, tileX, canvas.height / 2, tileWidth, tileHeight));
-        }
-
-        tileNum++;
-    }
-
-    return tiles;
-}
-
-function createGroupDiamondTiles(canvas, canvasContext) {
-    const tiles = [];
-    const tileHeight = canvas.height * USABLE_HEIGHT_RATIO / 2;
-    const tileWidth = tileHeight * DIAMOND_RATIO;
-
-    for (let i = 0; i < 11; i++) {
-        let id;
-
-        if (i < 2) {
-            id = 3;
-        } else if (i < 4) {
-            id = 2;
-        } else if (i < 5) {
-            id = 1;
-        } else if (i < 6) {
-            id = 0;
-        } else if (i < 7) {
-            id = 1;
-        } else if (i < 9) {
-            id = 2;
-        } else {
-            id = 3;
-        }
-
-        const tileX = canvas.width / 2 - tileWidth * 3 + tileWidth / 2 * i;
-
-        if (i % 2 === 0) {
-            tiles.push(new DiamondTile(id, canvasContext, tileX, canvas.height / 2 - tileHeight / 2, tileWidth, tileHeight));
-        } else {
-            tiles.push(new DiamondTile(id, canvasContext, tileX, canvas.height / 2 - tileHeight, tileWidth, tileHeight));
-            tiles.push(new DiamondTile(id, canvasContext, tileX, canvas.height / 2, tileWidth, tileHeight));
-        }
-    }
-
-    return tiles;
-}
-
-function createGroupDiamondTiles2(canvas, canvasContext) {
-    const tiles = [];
-    const tileHeight = canvas.height * USABLE_HEIGHT_RATIO / 2;
-    const tileWidth = tileHeight * DIAMOND_RATIO;
+    const tileWidth = canvas.width * USABLE_HEIGHT_RATIO / 6;
 
     for (let i = 0; i < 11; i++) {
         let id;

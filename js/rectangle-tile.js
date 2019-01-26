@@ -1,8 +1,8 @@
 import Tile from './tile.js';
 
 export default class RectangleTile extends Tile {
-    constructor(context, x, y, width, height) {
-        super(context, x, y, width, height);
+    constructor(id, context, x, y, width, height) {
+        super(id, context, x, y, width, height);
     }
 
     drawHue(hue, alpha) {
