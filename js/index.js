@@ -30,6 +30,7 @@ window.onload = function() {
 
     const tiles = createDiamondTiles(canvas, canvasContext);
     // const tiles = createRectangleTiles(canvas, canvasContext);
+    // const tiles = createRectangleTiles2(canvas, canvasContext);
 
     const tileHandler = new TileHandler(tiles);
 
@@ -193,6 +194,24 @@ function createDiamondTiles(canvas, canvasContext) {
         } else {
             tiles.push(new DiamondTile(id, canvasContext, tileX, canvas.height / 2 - tileHeight, tileWidth, tileHeight));
             tiles.push(new DiamondTile(id, canvasContext, tileX, canvas.height / 2, tileWidth, tileHeight));
+        }
+    }
+
+    return tiles;
+}
+
+function createRectangleTiles2(canvas, canvasContext) {
+    const tiles = [];
+    const numTilesInALine = NUM_TILE_GROUPS + 1;
+
+    for (let i = 0; i < numTilesInALine; i++) {
+        for (let j = 0; j < numTilesInALine; j++) {
+            const id = Math.abs(NUM_TILE_GROUPS / 2 - i) + Math.abs(NUM_TILE_GROUPS / 2 - j);
+            const tileWidth = canvas.width / numTilesInALine;
+            const tileHeight = canvas.height / numTilesInALine;
+            const tileX = tileWidth * i;
+            const tileY = tileHeight * j;
+            tiles.push(new RectangleTile(id, canvasContext, tileX, tileY, tileWidth, tileHeight));
         }
     }
 
