@@ -5,13 +5,13 @@ export default class RectangleTile extends Tile {
         super(id, context, x, y, width, height);
     }
 
-    drawHue(hue, alpha) {
-        this.setHue(hue, alpha);
+    drawHue(hue, intensity) {
+        this.setHue(hue, intensity);
         this.context.fillRect(this.x, this.y, this.width, this.height);
     }
 
-    drawRGBA(red, green, blue, alpha) {
-        this.setRGBA(red, green, blue, alpha);
+    drawRGBA(red, green, blue, intensity) {
+        this.setRGBA(red, green, blue, intensity);
         this.context.fillRect(this.x, this.y, this.width, this.height);
     }
 }

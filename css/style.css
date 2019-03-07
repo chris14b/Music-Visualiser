@@ -5,6 +5,13 @@
   z-index: 100;
 }
 
+#style {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 100;
+}
+
 #canvas {
   position: fixed;
   left: 0;
