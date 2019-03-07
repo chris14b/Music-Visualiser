@@ -17,6 +17,7 @@ const RESET_VALUES_TIME_THRESHOLD = 1;
 const SMOOTHING_TIME_CONSTANT = 0.95;
 const SILENT_THRESHOLD = 0;
 const FPS = 30;
+const TILE_MARGIN = 1;
 
 window.onload = function() {
     const audio = document.getElementById("audio");
@@ -167,8 +168,10 @@ function createRectangleTiles(canvas, canvasContext) {
 
 function createDiamondTiles(canvas, canvasContext) {
     const tiles = [];
-    const tileHeight = canvas.height * USABLE_HEIGHT_RATIO / 2;
-    const tileWidth = canvas.width * USABLE_HEIGHT_RATIO / 6;
+    const tileHeightPlusMargin = canvas.height * USABLE_HEIGHT_RATIO / 2;
+    const tileWidthPlusMargin = canvas.width * USABLE_HEIGHT_RATIO / 6;
+    const tileHeight = tileHeightPlusMargin - TILE_MARGIN * 2;
+    const tileWidth = tileWidthPlusMargin - TILE_MARGIN * 2
 
     for (let i = 0; i < 11; i++) {
         let id;
@@ -187,13 +190,13 @@ function createDiamondTiles(canvas, canvasContext) {
             id = 0;
         }
 
-        const tileX = canvas.width / 2 - tileWidth * 3 + tileWidth / 2 * i;
+        const tileX = canvas.width / 2 - tileWidthPlusMargin * 3 + tileWidthPlusMargin / 2 * i + TILE_MARGIN;
 
         if (i % 2 === 0) {
-            tiles.push(new DiamondTile(id, canvasContext, tileX, canvas.height / 2 - tileHeight / 2, tileWidth, tileHeight));
+            tiles.push(new DiamondTile(id, canvasContext, tileX, canvas.height / 2 - tileHeightPlusMargin / 2 + TILE_MARGIN, tileWidth, tileHeight));
         } else {
-            tiles.push(new DiamondTile(id, canvasContext, tileX, canvas.height / 2 - tileHeight, tileWidth, tileHeight));
-            tiles.push(new DiamondTile(id, canvasContext, tileX, canvas.height / 2, tileWidth, tileHeight));
+            tiles.push(new DiamondTile(id, canvasContext, tileX, canvas.height / 2 - tileHeightPlusMargin + TILE_MARGIN, tileWidth, tileHeight));
+            tiles.push(new DiamondTile(id, canvasContext, tileX, canvas.height / 2 + TILE_MARGIN, tileWidth, tileHeight));
         }
     }
 
