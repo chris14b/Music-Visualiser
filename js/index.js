@@ -12,9 +12,9 @@ const MIN_ALPHA = 0;
 const MAX_ALPHA = 100;
 const QUIET_TIME_THRESHOLD = 0.5; // seconds of quiet, after which colour will change
 const RESET_VALUES_TIME_THRESHOLD = 1;
-const SMOOTHING_TIME_CONSTANT = 0.95;
+const SMOOTHING_TIME_CONSTANT = 0.97;
 const SILENT_THRESHOLD = 0;
-const FPS = 30;
+const FPS = 60;
 const TILE_MARGIN = 1;
 const NUM_TILE_STYLES = 5;
 
@@ -50,8 +50,6 @@ window.onload = function() {
         let maxIntensities = new Array(NUM_TILE_GROUPS).fill(0);
         let darkFrameCount = Number.MAX_SAFE_INTEGER;
         let silentFrameCount = Number.MAX_SAFE_INTEGER;
-        let tileStyle = 0;
-
         const frameInterval = 1000 / FPS;
         let then = window.performance.now();
 
@@ -64,13 +62,13 @@ window.onload = function() {
 
             if (elapsed >= frameInterval) {
                 then = now - (elapsed % frameInterval);
-                analyser.getByteFrequencyData(frequencyBins);
                 canvasContext.fillStyle = "black";
                 canvasContext.fillRect(0, 0, canvas.width, canvas.height);
                 let darkFrame = true;
                 frameCount++;
-                let tileGroupBins = getTileBins(frequencyBins);
                 let frameAverageIntensity = 0;
+                analyser.getByteFrequencyData(frequencyBins);
+                let tileGroupBins = getTileBins(frequencyBins);
 
                 for (let i = 0; i < NUM_TILE_GROUPS; i++) {
                     averageIntensities[i] += (tileGroupBins[i] - averageIntensities[i]) / frameCount;
@@ -118,7 +116,6 @@ window.onload = function() {
 
     function changeStyle() {
         window.tileStyle = (window.tileStyle + 1) % NUM_TILE_STYLES;
-        console.log(window.tileStyle);
     }
 };
 
