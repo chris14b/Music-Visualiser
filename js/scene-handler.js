@@ -5,10 +5,19 @@ import Tile from "./tile.js";
 export default class SceneHandler {
     static MUSIC = 0;
     static GLOW = 1;
-    static DEFAULT = SceneHandler.MUSIC;
 
-    constructor(stream) {
+    constructor() {
+        navigator.getUserMedia({audio: true}, this.allowSound.bind(this), this.disallowSound.bind(this));
+    }
+
+    allowSound(stream) {
         this.stream = stream;
+        this.select(SceneHandler.MUSIC);
+    }
+
+    disallowSound(error) {
+        console.error(error);
+        this.select(SceneHandler.GLOW);
     }
 
     select(sceneType) {
@@ -17,9 +26,7 @@ export default class SceneHandler {
         }
 
         if (sceneType === SceneHandler.MUSIC) {
-            if (this.stream) {
-                this.scene = new MusicScene(this.stream);
-            }
+            this.scene = new MusicScene(this.stream);
         } else if (sceneType === SceneHandler.GLOW) {
             this.scene = new GlowScene();
         } else {
