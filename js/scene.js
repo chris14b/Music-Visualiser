@@ -9,7 +9,7 @@ export default class Scene {
     static MAX_HUE = 360;
     static FRAME_INTERVAL = 1000 / Scene.FPS;
 
-    constructor(stream) {
+    constructor() {
         // initialise canvas
         this.canvas = document.getElementById("canvas");
         this.canvas.width = window.innerWidth;
