@@ -1,4 +1,12 @@
 export default class Tile {
+    static NORMAL = 0;
+    static PULSE = 1;
+    static BOUNCE = 2;
+    static FOLD = 3;
+    static EXTEND = 4;
+    static NUM_STYLES = 5;
+    static DEFAULT_STYLE = Tile.PULSE;
+    
     constructor(id, context, x, y, width, height) {
         this.id = id;
         this.context = context;
@@ -9,10 +17,6 @@ export default class Tile {
     }
 
     setHue(hue, intensity) {
-        this.context.fillStyle = "hsla(" + hue + ", 100%, 50%, " + intensity + "%)";
-    }
-
-    setRGBA(red, green, blue, intensity) {
-        this.context.fillStyle = "rgba(" + red + ", " + green + ", " + blue + ", " + intensity + "%)";
+        this.context.fillStyle = "hsla(" + hue + ", 100%, 50%, " + intensity + ")";
     }
 }
