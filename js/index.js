@@ -5,8 +5,11 @@ window.onload = function() {
 
     function soundAllowed(stream) {
         const visualiser = new Visualiser(stream);
+        document.getElementById ("visualise").addEventListener ("click", visualiser.initialiseVisualisation.bind(visualiser), false);
+        document.getElementById ("glow").addEventListener ("click", visualiser.glow.bind(visualiser), false);
         document.getElementById ("style").addEventListener ("click", visualiser.changeStyle.bind(visualiser), false);
-        visualiser.setMode(Visualiser.DEFAULT_MODE);
+        visualiser.mode = Visualiser.DEFAULT_MODE;
+        visualiser.changeMode();
     }
 
     function soundNotAllowed(error) {

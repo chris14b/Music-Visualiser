@@ -1,8 +1,8 @@
 import Tile from './tile.js';
 
 export default class DiamondTile extends Tile {
-    constructor(id, context, x, y, width, height) {
-        super(id, context, x, y, width, height);
+    constructor(id, groupId, context, x, y, width, height) {
+        super(id, groupId, context, x, y, width, height);
     }
 
     show(hue, intensity, style = Tile.DEFAULT_STYLE) {

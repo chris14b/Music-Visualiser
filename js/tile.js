@@ -7,8 +7,9 @@ export default class Tile {
     static NUM_STYLES = 5;
     static DEFAULT_STYLE = Tile.PULSE;
     
-    constructor(id, context, x, y, width, height) {
+    constructor(id, groupId, context, x, y, width, height) {
         this.id = id;
+        this.groupId = groupId;
         this.context = context;
         this.x = x;
         this.y = y;
