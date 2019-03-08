@@ -5,20 +5,20 @@ const PULSE = 1;
 const MELT = 2;
 const CHIRP = 3;
 const EXTEND = 4;
+const DEFAULT_STYLE = PULSE;
 
 export default class DiamondTile extends Tile {
     constructor(id, context, x, y, width, height) {
         super(id, context, x, y, width, height);
-        this.style = style;
     }
 
-    drawHue(hue, intensity, style = PULSE) {
+    drawHue(hue, intensity, style = DEFAULT_STYLE) {
         this.outlineDiamond(intensity, style);
         this.setHue(hue, intensity);
         this.context.fill();
     }
 
-    drawRGBA(red, green, blue, intensity, style = PULSE) {
+    drawRGBA(red, green, blue, intensity, style = DEFAULT_STYLE) {
         this.outlineDiamond(intensity, style);
         this.setRGBA(red, green, blue, intensity);
         this.context.fill();
