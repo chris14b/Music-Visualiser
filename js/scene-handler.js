@@ -7,7 +7,9 @@ export default class SceneHandler {
     static GLOW = 1;
 
     constructor() {
-        navigator.getUserMedia({audio: true}, this.allowSound.bind(this), this.disallowSound.bind(this));
+        navigator.mediaDevices.getUserMedia({audio: true})
+            .then((stream) => this.allowSound(stream))
+            .catch((error) => this.disallowSound(error));
     }
 
     allowSound(stream) {

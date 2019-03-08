@@ -25,7 +25,7 @@ export default class MusicScene extends Scene {
         this.averageIntensities = new Array(this.tileHandler.numTileGroups).fill(0);
         this.maxIntensities = new Array(this.tileHandler.numTileGroups).fill(0);
         this.hueStart = Math.random() * Scene.MAX_HUE;
-        this.darkFrameCount = Number.MAX_SAFE_INTEGER;
+        this.darkFrameCount = Number.MIN_SAFE_INTEGER;
         this.silentFrameCount = Number.MAX_SAFE_INTEGER;
         this.frameCount = 0;
         this.then = window.performance.now();
