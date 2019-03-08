@@ -10,7 +10,8 @@ const FPS = 30;
 const BACKGROUND_COLOUR = "black";
 const HUE_INCREMENT_PER_SECOND = 6; // hue range will shift by this amount every frame
 const RESET_VALUES_TIME_THRESHOLD = 1;
-const GLOW_CYCLE_LENGTH = 10;
+const AV_GLOW_CYCLE_LENGTH = 20;
+const GLOW_CYCLE_RANGE = 10;
 
 // change rarely
 const FFT_SIZE = 2048;
@@ -134,10 +135,10 @@ export default class Visualiser {
         this.mode = Visualiser.GLOW;
         this.hueStart = Math.random() * MAX_HUE;
         this.frameCount = 0;
-        this.randomNumbers = [this.tileHandler.numTiles];
+        this.tileRandoms = [this.tileHandler.numTiles];
 
         for (let i = 0; i < this.tileHandler.numTiles; i++) {
-            this.randomNumbers[i] = [Math.random(), Math.random()];
+            this.tileRandoms[i] = [Math.random(), Math.random(), Math.random()];
         }
 
         this.then = window.performance.now();
@@ -155,8 +156,9 @@ export default class Visualiser {
             this.canvasContext.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
             for (let i = 0; i < this.tileHandler.numTiles; i++) {
-                const hue = this.hueStart + FRAME_HUE_RANGE * this.randomNumbers[i][0];
-                const intensity = Math.abs((this.frameCount / FPS % GLOW_CYCLE_LENGTH / GLOW_CYCLE_LENGTH + this.randomNumbers[i][1]) % 1 * 2 - 1);
+                const hue = this.hueStart + FRAME_HUE_RANGE * this.tileRandoms[i][0];
+                const cycleLength = AV_GLOW_CYCLE_LENGTH - GLOW_CYCLE_RANGE / 2 + GLOW_CYCLE_RANGE * this.tileRandoms[i][2];
+                const intensity = Math.abs((this.frameCount / FPS % cycleLength / cycleLength + this.tileRandoms[i][1]) % 1 * 2 - 1);
                 this.tileHandler.showIndividual(i, hue, intensity, this.tileStyle);
             }
 
