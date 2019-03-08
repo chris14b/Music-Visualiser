@@ -7,15 +7,23 @@ export default class SceneHandler {
     static GLOW = 1;
     static DEFAULT = SceneHandler.MUSIC;
 
+    constructor(stream) {
+        this.stream = stream;
+    }
+
     select(sceneType) {
         if (this.scene) {
             this.scene.stop = true;
         }
 
         if (sceneType === SceneHandler.MUSIC) {
-            this.scene = new MusicScene();
+            if (this.stream) {
+                this.scene = new MusicScene(this.stream);
+            }
         } else if (sceneType === SceneHandler.GLOW) {
             this.scene = new GlowScene();
+        } else {
+            console.error("Invalid scene type: " + sceneType);
         }
 
         this.scene.start();

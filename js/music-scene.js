@@ -8,27 +8,19 @@ export default class MusicScene extends Scene {
     static FFT_SIZE = 2048;
     static NUM_FREQUENCY_BINS = MusicScene.FFT_SIZE / 2;
 
-    constructor() {
+    constructor(stream) {
         super();
 
-        navigator.getUserMedia({audio: true}, soundAllowed.bind(this), soundNotAllowed);
-
-        function soundAllowed(stream) {
-            console.log("Hello");
-            const audioContext = new AudioContext();
-            const audioStream = audioContext.createMediaStreamSource(stream);
-            this.analyser = audioContext.createAnalyser();
-            audioStream.connect(this.analyser);
-            this.analyser.fftSize = MusicScene.FFT_SIZE;
-            this.analyser.smoothingTimeConstant = MusicScene.SMOOTHING_TIME_CONSTANT;
-        }
-
-        function soundNotAllowed(error) {
-            console.log(error);
-        }
+        const audioContext = new AudioContext();
+        const audioStream = audioContext.createMediaStreamSource(stream);
+        this.analyser = audioContext.createAnalyser();
+        audioStream.connect(this.analyser);
+        this.analyser.fftSize = MusicScene.FFT_SIZE;
+        this.analyser.smoothingTimeConstant = MusicScene.SMOOTHING_TIME_CONSTANT;
     }
 
     start() {
+        this.stop = false;
         this.frequencyBins = new Uint8Array(MusicScene.NUM_FREQUENCY_BINS);
         this.averageIntensities = new Array(this.tileHandler.numTileGroups).fill(0);
         this.maxIntensities = new Array(this.tileHandler.numTileGroups).fill(0);

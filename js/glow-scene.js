@@ -9,6 +9,7 @@ export default class GlowScene extends Scene {
     }
 
     start() {
+        this.stop = false;
         this.hueStart = Math.random() * Scene.MAX_HUE;
         this.frameCount = 0;
         this.tileRandoms = [this.tileHandler.numTiles];

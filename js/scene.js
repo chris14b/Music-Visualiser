@@ -21,7 +21,7 @@ export default class Scene {
         this.tileHandler.createDiamondTiles(this.canvas, this.canvasContext);
         this.tileStyle = Tile.DEFAULT_STYLE;
 
-        this.stop = false;
+        this.stop = true;
     }
 
     static incrementHue(hue, increment) {
