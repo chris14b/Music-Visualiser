@@ -10,7 +10,6 @@ export default class MusicScene extends Scene {
 
     constructor(stream) {
         super();
-
         const audioContext = new AudioContext();
         const audioStream = audioContext.createMediaStreamSource(stream);
         this.analyser = audioContext.createAnalyser();
@@ -43,21 +42,11 @@ export default class MusicScene extends Scene {
             this.canvasContext.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
             let darkFrame = true;
-            this.frameCount++;
-            let frameAverageIntensity = 0;
 
-            let tileGroupBins = this.getTileBins(this.frequencyBins);
             this.analyser.getByteFrequencyData(this.frequencyBins);
+            let tileGroupBins = this.getTileBins(this.frequencyBins);
 
-            for (let i = 0; i < this.tileHandler.numTileGroups; i++) {
-                this.averageIntensities[i] += (tileGroupBins[i] - this.averageIntensities[i]) / this.frameCount;
-                this.maxIntensities[i] = Math.max(this.maxIntensities[i], tileGroupBins[i]);
-                const hue = Scene.incrementHue(this.hueStart, - i / (this.tileHandler.numTileGroups - 1) * Scene.FRAME_HUE_RANGE);
-                const alpha = MusicScene.scaleValue(tileGroupBins[i], this.averageIntensities[i], this.maxIntensities[i], 0, 1);
-                this.tileHandler.showGroup(i, hue, alpha, this.tileStyle);
-                darkFrame = darkFrame && alpha === 0;
-                frameAverageIntensity += (tileGroupBins[i] - frameAverageIntensity) / (i + 1);
-            }
+            const frameAverageIntensity = tileGroupBins.reduce(MusicScene.add) / this.tileHandler.numTileGroups;
 
             if (frameAverageIntensity <= MusicScene.SILENT_THRESHOLD) {
                 this.silentFrameCount++;
@@ -72,13 +61,25 @@ export default class MusicScene extends Scene {
                 this.silentFrameCount = 0;
             }
 
+            this.frameCount++;
+
+            for (let i = 0; i < this.tileHandler.numTileGroups; i++) {
+                this.averageIntensities[i] += (tileGroupBins[i] - this.averageIntensities[i]) / this.frameCount;
+                this.maxIntensities[i] = Math.max(this.maxIntensities[i], tileGroupBins[i]);
+                const hue = Scene.incrementHue(this.hueStart, - i / (this.tileHandler.numTileGroups - 1) * Scene.FRAME_HUE_RANGE);
+                const alpha = MusicScene.scaleValue(tileGroupBins[i], this.averageIntensities[i], this.maxIntensities[i], 0, 1);
+                this.tileHandler.showGroup(i, hue, alpha, this.tileStyle);
+                darkFrame = darkFrame && alpha === 0;
+            }
+
             if (darkFrame) {
                 this.darkFrameCount++;
-            } else {
-                if (this.darkFrameCount >= Scene.FPS * MusicScene.DARK_TIME_THRESHOLD) {
-                    this.hueStart = Scene.incrementHue(this.hueStart, Scene.FRAME_HUE_RANGE * 1.5);
-                }
 
+                if (this.darkFrameCount === Math.ceil(Scene.FPS * MusicScene.DARK_TIME_THRESHOLD)) {
+                    this.hueStart = Scene.incrementHue(this.hueStart, Scene.FRAME_HUE_RANGE * 1.5);
+                    console.info("Incrementing hue after " + this.darkFrameCount + " dark frames.");
+                }
+            } else {
                 this.darkFrameCount = 0;
             }
 
@@ -115,9 +116,13 @@ export default class MusicScene extends Scene {
 
     static scaleValue(value, minIn, maxIn, minOut, maxOut) {
         if (maxIn - minIn <= 0) {
-            return 0;
+            return minOut;
         }
 
-        return Math.max((value - minIn) / (maxIn - minIn) * (maxOut - minOut) + minOut, 0);
+        return Math.max((value - minIn) / (maxIn - minIn) * (maxOut - minOut) + minOut, minOut);
+    }
+
+    static add(x, y) {
+        return x + y;
     }
 }
