@@ -1,10 +1,12 @@
 import MusicScene from "./music-scene.js";
 import GlowScene from "./glow-scene.js";
 import Tile from "./tile.js";
+import StartScene from "./start-scene.js";
 
 export default class SceneHandler {
-    static MUSIC = 0;
-    static GLOW = 1;
+    static START = 0;
+    static MUSIC = 1;
+    static GLOW = 2;
 
     constructor() {
         navigator.mediaDevices.getUserMedia({audio: true})
@@ -14,7 +16,7 @@ export default class SceneHandler {
 
     allowSound(stream) {
         this.stream = stream;
-        this.select(SceneHandler.MUSIC);
+        this.select(SceneHandler.START);
     }
 
     disallowSound(error) {
@@ -27,7 +29,9 @@ export default class SceneHandler {
             this.scene.stop = true;
         }
 
-        if (sceneType === SceneHandler.MUSIC) {
+        if (sceneType === SceneHandler.START) {
+            this.scene = new StartScene();
+        } else if (sceneType === SceneHandler.MUSIC) {
             this.scene = new MusicScene(this.stream);
         } else if (sceneType === SceneHandler.GLOW) {
             this.scene = new GlowScene();
