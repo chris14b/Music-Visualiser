@@ -7,6 +7,7 @@ export default class SceneHandler {
     static START = 0;
     static MUSIC = 1;
     static GLOW = 2;
+    static DEFAULT_SCENE = SceneHandler.MUSIC;
 
     constructor() {
         navigator.mediaDevices.getUserMedia({audio: true})
@@ -30,7 +31,7 @@ export default class SceneHandler {
         }
 
         if (sceneType === SceneHandler.START) {
-            this.scene = new StartScene();
+            this.scene = new StartScene(this);
         } else if (sceneType === SceneHandler.MUSIC) {
             this.scene = new MusicScene(this.stream);
         } else if (sceneType === SceneHandler.GLOW) {
