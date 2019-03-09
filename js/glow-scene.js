@@ -1,7 +1,7 @@
 import Scene from "./scene.js"
 
 export default class GlowScene extends Scene {
-    static AV_CYCLE_LENGTH = 30;
+    static AV_CYCLE_LENGTH = 20;
     static CYCLE_RANGE = 20;
 
     constructor() {
@@ -28,7 +28,7 @@ export default class GlowScene extends Scene {
         for (let i = 0; i < this.tileHandler.numTiles; i++) {
             const hue = this.hueStart + Scene.FRAME_HUE_RANGE * this.tileRandoms[i][0];
             const cycleLength = GlowScene.AV_CYCLE_LENGTH - GlowScene.CYCLE_RANGE / 2 + GlowScene.CYCLE_RANGE * this.tileRandoms[i][2];
-            const intensity = Math.abs((this.frameCount / Scene.FPS % cycleLength / cycleLength + this.tileRandoms[i][1]) % 1 * 2 - 1);
+            const intensity = Math.abs((this.frameCount / Scene.FPS % cycleLength / cycleLength + 1 / 2) % 1 * 2 - 1);
             this.tileHandler.showIndividual(i, hue, intensity, this.tileStyle);
         }
 
