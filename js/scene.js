@@ -3,10 +3,10 @@ import Tile from "./tile.js";
 
 export default class Scene {
     static FRAME_HUE_RANGE = 90; // range of hues to be shown at any one time
-    static FPS = 4;
     static BACKGROUND_COLOUR = "black";
     static HUE_INCREMENT_PER_SECOND = 6; // hue range will shift by this amount every frame
     static MAX_HUE = 360;
+    static FPS = 60;
     static FRAME_INTERVAL = 1000 / Scene.FPS;
 
     constructor() {
